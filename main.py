@@ -52,16 +52,15 @@ def fast_DFT(inSignal, s: int = -1):
     y = np.zeros(inSignal.shape, dtype = complex)
     N = inSignal.shape[0]
     if N == 1:
-        return inSignal
+        return DFT(inSignal,s)
     else:
-        yeven = FFT(inSignal[0:N:2])
-        yodd = FFT(inSignal[1:N:2])
-        w = np.exp(-2j*np.pi*np.arange(N)/N)
-        fe = np.tile(yeven,(2))
-        fo = np.tile(yodd,(2))
+        yeven = FFT(inSignal[0:N:2],s) #find FFT at even indices
+        yodd = FFT(inSignal[1:N:2],s) #find FFTat odd indices
+        w = np.exp(s*2j*np.pi*np.arange(N)/N)
+        fe = np.resize(yeven,N) #sampled values of the DFT are N-periodic
+        fo = np.resize(yodd,N) 
         y = fe + w*fo 
-    return y
-
+    return y 
 
 def fast_iDFT(inSignal):
     """
@@ -71,7 +70,11 @@ def fast_iDFT(inSignal):
     The complexity of this function is O(N log N)
     Where N is the length of the discrete input signal.
     """
-    return fast_DFT(inSignal, s = 1)
+    y = np.zeros(inSignal.shape, dtype = complex)
+    N = inSignal.shape[0]
+    inSignal = inSignal/N
+    y = FFT(inSignal, 1)
+    return y
 
 
 # Helper functions
