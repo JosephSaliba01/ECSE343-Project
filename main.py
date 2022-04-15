@@ -49,6 +49,18 @@ def fast_DFT(inSignal, s: int = -1):
     This function uses the Cooley-Tukey algorithm.
     """
     # TODO: Implement the fast DFT algorithm
+    y = np.zeros(inSignal.shape, dtype = complex)
+    N = inSignal.shape[0]
+    if N == 1:
+        return inSignal
+    else:
+        yeven = FFT(inSignal[0:N:2])
+        yodd = FFT(inSignal[1:N:2])
+        w = np.exp(-2j*np.pi*np.arange(N)/N)
+        fe = np.tile(yeven,(2))
+        fo = np.tile(yodd,(2))
+        y = fe + w*fo 
+    return y
 
 
 def fast_iDFT(inSignal):
