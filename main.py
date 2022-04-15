@@ -22,7 +22,7 @@ def naive_DFT(inSignal, s: int = -1):
 
     y = np.dot(M, inSignal)
 
-    return y if s == -1 else y/N
+    return y
 
 
 def naive_iDFT(inSignal):
@@ -37,7 +37,9 @@ def naive_iDFT(inSignal):
     Where N is the length of the discrete input signal.
     """
     y = np.zeros(inSignal.shape, dtype = complex)
-    y = DFT(inSignal,1)
+    N = inSignal.shape[0]
+    inSignal = inSignal/N
+    y = naive_DFT(inSignal,1)
     return y
 
 
@@ -54,10 +56,10 @@ def fast_DFT(inSignal, s: int = -1):
     y = np.zeros(inSignal.shape, dtype = complex)
     N = inSignal.shape[0]
     if N == 1:
-        return DFT(inSignal,s)
+        return naive_DFT(inSignal,s)
     else:
-        yeven = FFT(inSignal[0:N:2],s) #find FFT at even indices
-        yodd = FFT(inSignal[1:N:2],s) #find FFTat odd indices
+        yeven = fast_DFT(inSignal[0:N:2],s) #find FFT at even indices
+        yodd = fast_DFT(inSignal[1:N:2],s) #find FFTat odd indices
         w = np.exp(s*2j*np.pi*np.arange(N)/N)
         fe = np.resize(yeven,N) #sampled values of the DFT are N-periodic
         fo = np.resize(yodd,N) 
@@ -73,7 +75,9 @@ def fast_iDFT(inSignal):
     Where N is the length of the discrete input signal.
     """
     y = np.zeros(inSignal.shape, dtype = complex)
-    y = FFT(inSignal, 1)
+    N = inSignal.shape[0]
+    inSignal = inSignal/N
+    y = fast_DFT(inSignal, 1)
     return y
 
 
