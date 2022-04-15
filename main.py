@@ -36,7 +36,9 @@ def naive_iDFT(inSignal):
     The time complexity of this function is O(N^2).
     Where N is the length of the discrete input signal.
     """
-    return naive_DFT(inSignal, s = 1)
+    y = np.zeros(inSignal.shape, dtype = complex)
+    y = DFT(inSignal,1)
+    return y
 
 
 def fast_DFT(inSignal, s: int = -1):
@@ -71,8 +73,6 @@ def fast_iDFT(inSignal):
     Where N is the length of the discrete input signal.
     """
     y = np.zeros(inSignal.shape, dtype = complex)
-    N = inSignal.shape[0]
-    inSignal = inSignal/N
     y = FFT(inSignal, 1)
     return y
 
