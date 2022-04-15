@@ -62,5 +62,45 @@ def fast_iDFT(inSignal):
     return fast_DFT(inSignal, s = 1)
 
 
+# Helper functions
+
+def plot_discrete(*signals, title=""):
+    """
+    Plots the input signals.
+    """
+    fig, axs = plt.subplots(len(signals))
+
+    for i, signal in enumerate(signals):
+        axs[i].stem(signal)
+
+    plt.suptitle(title)
+    plt.show()
+
+
+def plot_continous(inSignal):
+    """
+    Plots the input signal.
+    """
+    plt.plot(inSignal)
+    plt.show()
+
+
+def discrete_sin(num_period, step):
+    """
+    Generates a sinusoid signal with the given amount of period and step.
+    """
+    step = step * np.pi
+    return np.sin(np.arange(0, num_period * 2 * np.pi + step, step))
+
+
+def main():
+    """
+    Main method.
+    """
+    y = discrete_sin(4, 0.125)
+    y_DFT = naive_DFT(y)
+    plot_discrete(y, y_DFT.real, y_DFT.imag, title="Naive plotting test")
+
+
 if __name__ == "__main__":
-    ...
+    main()
