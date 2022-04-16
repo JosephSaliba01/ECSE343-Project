@@ -1,5 +1,6 @@
 # import statements
 import sys
+import timeit
 import matplotlib.pyplot as plt   # plotting 
 import numpy as np                # all of numpy...
 del sys.modules["numpy"].fft      # ... except FFT helpers
@@ -55,7 +56,7 @@ def fast_DFT(inSignal, s: int = -1):
     # TODO: Implement the fast DFT algorithm
     y = np.zeros(inSignal.shape, dtype = complex)
     N = inSignal.shape[0]
-    if N == 1:
+    if N < 32:
         return naive_DFT(inSignal,s)
     else:
         yeven = fast_DFT(inSignal[0:N:2],s) #find FFT at even indices
@@ -119,6 +120,34 @@ def main():
     y = discrete_sin(4, 0.125)
     y_DFT = naive_DFT(y)
     plot_discrete(y, y_DFT.real, y_DFT.imag, title="Naive plotting test")
+    
+    ##benchmark FFTs performance against a naive DFT for increasingly large N
+    DFTplot = np.array([])
+    FFTplot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(13): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+
+        start_time = timeit.default_timer()
+        naive_DFT(x)
+        DFTtime = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFTplot = np.append(DFTplot, DFTtime)
+
+        start_time = timeit.default_timer()
+        fast_DFT(x)
+        FFTtime = timeit.default_timer() - start_time ##time it takes for FFT for a given N
+        FFTplot = np.append(FFTplot, FFTtime)
+
+    plt.plot(Naxis,DFTplot)
+    plt.plot(Naxis,FFTplot)
+    plt.legend(['naive DFT','fast DFT'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT/FFT as a function of N')
+    plt.show()
 
 
 if __name__ == "__main__":
