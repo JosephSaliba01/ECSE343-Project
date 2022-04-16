@@ -67,11 +67,12 @@ def fast_DFT(inSignal, s: int = -1):
         y = fe + w*fo 
     return y 
 
+
 def fast_iDFT(inSignal):
     """
     Fast implementation of the inverse discrete Fourier transform.
 
-    Since this function calles the fast_DFT function,
+    Since this function calls the fast_DFT function,
     The complexity of this function is O(N log N)
     Where N is the length of the discrete input signal.
     """
@@ -82,11 +83,25 @@ def fast_iDFT(inSignal):
     return y
 
 
-# Helper functions
+def naive_DFT2D(inSignal2D, s: int = -1):
+    return naive_DFT(naive_DFT(inSignal2D.T, s).T, s)
+
+
+def naive_iDFT2D(inSignal2D: complex):
+    return naive_DFT2D(inSignal2D, s = 1)
+
+
+def fast_DFT2D(inSignal2D, s: int = -1):
+    return fast_DFT(fast_DFT(inSignal2D.T, s).T, s)
+
+
+def fast_iDFT2D(inSignal2D: complex):
+    return fast_DFT2D(inSignal2D, s = 1)
+
 
 def plot_discrete(*signals, title=""):
     """
-    Plots the input signals.
+    Helper function to plot the discrete signals.
     """
     fig, axs = plt.subplots(len(signals))
 
@@ -97,22 +112,13 @@ def plot_discrete(*signals, title=""):
     plt.show()
 
 
-def discrete_sin(num_period, step):
-    """
-    Generates a sinusoid signal with the given amount of period and step.
-    """
-    step = step * np.pi
-    return np.sin(np.arange(0, num_period * 2 * np.pi + step, step))
-
-
 def main():
     """
     Main method.
     """
-    # y = discrete_sin(4, 0.125)
-    # y_DFT = naive_DFT(y)
-    # plot_discrete(y, y_DFT.real, y_DFT.imag, title="Naive plotting test")
     
+    print("[Part 1]: Benchmarking FFT performance against a naive DFT for increasing N values.")
+
     ##benchmark FFTs performance against a naive DFT for increasingly large N
     DFTplot = np.array([])
     FFTplot = np.array([])
@@ -143,30 +149,43 @@ def main():
     plt.title('Performance of DFT/FFT as a function of N')
     plt.show()
 
+
+    print("[Part 2a]: Benchmarking FFT performance against a naive DFT in audio application.")
+
     # Benchmark using Falcon voice sample
+    unedited_waveform = read("audio/Falcon-sound-unedited.wav")[1].T[0]  # read in the audio file
+    falcon_DFT_times, falcon_FFT_times = {}, {}
 
-    waveform = read("audio/Falcon-sound-2.wav")[1].T[0]  # read in the audio file
-    
-    start_time = timeit.default_timer()
-    y = naive_DFT(waveform)
-    DFTtime = timeit.default_timer() - start_time
-    plot_discrete(waveform, y.real, y.imag, title="Falcon voice sample using naive DFT")
+    for m in range(14):
+        N = 2**m
+        x = unedited_waveform[:N]
 
-    start_time = timeit.default_timer()
-    y = fast_DFT(waveform)
-    FFTtime = timeit.default_timer() - start_time
-    plot_discrete(waveform, y.real, y.imag, title="Falcon voice sample using fast DFT")
+        start_time = timeit.default_timer()
+        y_naive_DFT = naive_DFT(x)
+        falcon_DFT_times[N] = timeit.default_timer() - start_time
 
-    start_time = timeit.default_timer()
-    y = np.fft.fft(waveform)
-    npFFTtime = timeit.default_timer() - start_time
-    plot_discrete(waveform, y.real, y.imag, title="Falcon voice sample using numpy.fft.fft")
+        start_time = timeit.default_timer()
+        y_fast_DFT = fast_DFT(x)
+        falcon_FFT_times[N] = timeit.default_timer() - start_time
 
-    print("Naive DFT: ", DFTtime)
-    print("Fast DFT: ", FFTtime)
-    print("Numpy FFT: ", npFFTtime)
+        assert np.allclose(y_naive_DFT, np.fft.fft(x))
+        assert np.allclose(y_fast_DFT, np.fft.fft(x))
 
-    assert np.allclose(fast_DFT(waveform), np.fft.fft(waveform))
+    print("[Part 2b]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
+    bird_img = np.load("img/bird.npy")
+
+    plt.imshow(bird_img, plt.get_cmap('gray'), vmin=0, vmax=1)
+    plt.title = "Bird image"
+    plt.show()
+
+    fast_ft_bird = fast_DFT2D(bird_img)
+    naive_ft_bird = naive_DFT2D(bird_img)
+
+    assert np.allclose(naive_ft_bird, np.fft.fft2(bird_img))
+    assert np.allclose(fast_ft_bird, np.fft.fft2(bird_img))  # Doesn't work for some reason
+
+    plt.imshow(fast_ft_bird.real, plt.get_cmap('gray'), vmin=0, vmax=1)
+    plt.show()
 
 if __name__ == "__main__":
     main()
