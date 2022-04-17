@@ -56,7 +56,7 @@ def fast_DFT(inSignal, s: int = -1):
     """
     y = np.zeros(inSignal.shape, dtype = complex)
     N = inSignal.shape[0]
-    if N < 32:
+    if N <= 32:
         return naive_DFT(inSignal,s)
     else:
         yeven = fast_DFT(inSignal[0:N:2],s) #find FFT at even indices
@@ -84,19 +84,31 @@ def fast_iDFT(inSignal):
 
 
 def naive_DFT2D(inSignal2D, s: int = -1):
-    return naive_DFT(naive_DFT(inSignal2D.T, s).T, s)
+    x = np.apply_along_axis(naive_DFT, 0, inSignal2D, s)
+    y = np.apply_along_axis(naive_DFT, 1, x, s)
+    return y
 
 
 def naive_iDFT2D(inSignal2D: complex):
-    return naive_DFT2D(inSignal2D, s = 1)
+    y = np.zeros(inSignal2D.shape, dtype = complex)
+    N = inSignal2D.shape[0]
+    inSignal2D = inSignal2D/(N**2)
+    y = naive_DFT2D(inSignal2D,1)
+    return y
 
 
 def fast_DFT2D(inSignal2D, s: int = -1):
-    return fast_DFT(fast_DFT(inSignal2D.T, s).T, s)
+    x = np.apply_along_axis(fast_DFT, 0, inSignal2D, s)
+    y = np.apply_along_axis(fast_DFT, 1, x, s)
+    return y
 
 
 def fast_iDFT2D(inSignal2D: complex):
-    return fast_DFT2D(inSignal2D, s = 1)
+    y = np.zeros(inSignal2D.shape, dtype = complex)
+    N = inSignal2D.shape[0]
+    inSignal2D = inSignal2D/(N**2)
+    y = fast_DFT2D(inSignal2D,1)
+    return y
 
 
 def plot_discrete(*signals, title=""):
@@ -117,7 +129,7 @@ def main():
     Main method.
     """
     
-    print("[Part 1]: Benchmarking FFT performance against a naive DFT for increasing N values.")
+    print("[Part 1.a]: Benchmarking FFT performance against a naive DFT for increasing N values.")
 
     ##benchmark FFTs performance against a naive DFT for increasingly large N
     DFTplot = np.array([])
@@ -148,6 +160,37 @@ def main():
     plt.ylabel('Time')
     plt.title('Performance of DFT/FFT as a function of N')
     plt.show()
+    
+    print("[Part 1.b]: Benchmarking FFT-2D performance against a naive DFT-2D for increasing N values.")
+    DFT2plot = np.array([])
+    FFT2plot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(9): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+        z = np.zeros((N,N), dtype=complex)
+        z[:] = x
+
+        start_time = timeit.default_timer()
+        y = naive_DFT2D(z)
+        DFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFT2plot = np.append(DFT2plot, DFT2time)
+
+        start_time = timeit.default_timer()
+        y = fast_DFT2D(z)
+        FFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        FFT2plot = np.append(FFT2plot, FFT2time)
+
+    plt.plot(Naxis, DFT2plot)
+    plt.plot(Naxis,FFT2plot)
+    plt.legend(['naive DFT-2D','fast DFT-2D'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT-2D/FFT-2D as a function of N')
+    plt.show()
+
 
 
     print("[Part 2a]: Benchmarking FFT performance against a naive DFT in audio application.")
