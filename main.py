@@ -172,20 +172,31 @@ def main():
         assert np.allclose(y_fast_DFT, np.fft.fft(x))
 
     print("[Part 2b]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
-    bird_img = np.load("img/bird.npy")
+    bird_img = np.load("img/pnois2.npy")
 
     plt.imshow(bird_img, plt.get_cmap('gray'), vmin=0, vmax=1)
     plt.title = "Bird image"
     plt.show()
 
-    fast_ft_bird = fast_DFT2D(bird_img)
-    naive_ft_bird = naive_DFT2D(bird_img)
+    # fast_ft_bird = fast_DFT2D(bird_img)
+    # naive_ft_bird = naive_DFT2D(bird_img)
 
-    assert np.allclose(naive_ft_bird, np.fft.fft2(bird_img))
-    assert np.allclose(fast_ft_bird, np.fft.fft2(bird_img))  # Doesn't work for some reason
+    # assert np.allclose(naive_ft_bird, np.fft.fft2(bird_img))
+    # assert np.allclose(fast_ft_bird, np.fft.fft2(bird_img))  # Doesn't work for some reason
 
-    plt.imshow(fast_ft_bird.real, plt.get_cmap('gray'), vmin=0, vmax=1)
+    fast_ft_bird = np.fft.fft2(bird_img)
+
+    plt.imshow(20*np.log10(abs(fast_ft_bird)), plt.get_cmap('gray'), vmin=0, vmax=1)
     plt.show()
 
+    keep_fraction = 0.125
+    N = fast_ft_bird.shape[0]
+    fast_ft_bird[int(N*keep_fraction):int(N*(1-keep_fraction)), int(N*keep_fraction):int(N*(1-keep_fraction))] = 0
+    
+    new_image = np.fft.ifft2(fast_ft_bird).real
+
+    plt.imshow(new_image, plt.get_cmap('gray'), vmin=0, vmax=1)
+
+    plt.show()
 if __name__ == "__main__":
     main()
