@@ -207,6 +207,7 @@ def main():
     def blank(M, y, x):
         M[x:x+1, y:y+1] = 0
 
+    # filter the spectrum
     blank(ft_goose_filtered, 240, 256)
     blank(ft_goose_filtered, 272, 256)
     blank(ft_goose_filtered, 251, 251)
@@ -256,9 +257,9 @@ def main():
     ft_lenna_filtered = fast_DFT2D(lenna_noise)
     ft_lenna_filtered = np.fft.fftshift(ft_lenna_filtered)
 
+    # filter the spectrum
     ft_lenna_filtered[256, :] = 0
     ft_lenna_filtered[256, :] = 0
-
     ft_lenna_filtered[:, 256] = 0
     ft_lenna_filtered[:, 256] = 0
 
