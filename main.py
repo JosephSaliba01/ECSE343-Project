@@ -1,5 +1,4 @@
 # import statements
-import sys
 import timeit
 from scipy.io.wavfile import read, write
 import matplotlib.pyplot as plt   # plotting 
@@ -128,10 +127,7 @@ def main():
     """
     Main method.
     """
-    
     print("[Part 1.a]: Benchmarking FFT performance against a naive DFT for increasing N values.")
-
-    ##benchmark FFTs performance against a naive DFT for increasingly large N
     DFTplot = np.array([])
     FFTplot = np.array([])
     Naxis = np.array([])
@@ -166,7 +162,7 @@ def main():
     FFT2plot = np.array([])
     Naxis = np.array([])
 
-    for m in range(9): 
+    for m in range(10): 
         N = 2**m
         Naxis = np.append(Naxis,N)
         x = np.random.randn(N) + np.random.randn(N)*1j
@@ -191,55 +187,100 @@ def main():
     plt.title('Performance of DFT-2D/FFT-2D as a function of N')
     plt.show()
 
+    print("[Part 2]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
+    print("Example 1: Goose image.")
 
+    goose_clean = np.load('img/goose.npy')
+    goose_noise = np.load("img/goose-noise.npy")
 
-    print("[Part 2a]: Benchmarking FFT performance against a naive DFT in audio application.")
+    fig, axs = plt.subplots(2,3)
 
-    # Benchmark using Falcon voice sample
-    unedited_waveform = read("audio/Falcon-sound-unedited.wav")[1].T[0]  # read in the audio file
-    falcon_DFT_times, falcon_FFT_times = {}, {}
+    ft_goose_clean = fast_DFT2D(goose_clean)
+    ft_goose_clean = np.fft.fftshift(ft_goose_clean)
 
-    for m in range(14):
-        N = 2**m
-        x = unedited_waveform[:N]
+    ft_goose_noise = fast_DFT2D(goose_noise)
+    ft_goose_noise = np.fft.fftshift(ft_goose_noise)
 
-        start_time = timeit.default_timer()
-        y_naive_DFT = naive_DFT(x)
-        falcon_DFT_times[N] = timeit.default_timer() - start_time
+    ft_goose_filtered = fast_DFT2D(goose_noise)
+    ft_goose_filtered = np.fft.fftshift(ft_goose_filtered)
 
-        start_time = timeit.default_timer()
-        y_fast_DFT = fast_DFT(x)
-        falcon_FFT_times[N] = timeit.default_timer() - start_time
+    def blank(M, y, x):
+        M[x:x+1, y:y+1] = 0
 
-        assert np.allclose(y_naive_DFT, np.fft.fft(x))
-        assert np.allclose(y_fast_DFT, np.fft.fft(x))
+    blank(ft_goose_filtered, 240, 256)
+    blank(ft_goose_filtered, 272, 256)
+    blank(ft_goose_filtered, 251, 251)
+    blank(ft_goose_filtered, 261, 261)
 
-    print("[Part 2b]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
-    bird_img = np.load("img/pnois2.npy")
+    goose_filtered = fast_iDFT2D(np.fft.ifftshift(ft_goose_filtered)).real
 
-    plt.imshow(bird_img, plt.get_cmap('gray'), vmin=0, vmax=1)
-    plt.title = "Bird image"
+    axs[0, 0].imshow(goose_clean, plt.get_cmap('gray'))
+    axs[0, 1].imshow(goose_noise, plt.get_cmap('gray'))
+    axs[0, 2].imshow(goose_filtered, plt.get_cmap('gray'))
+
+    axs[0, 0].set_title("Clean goose image.")
+    axs[0, 1].set_title("Noisy goose image.")
+    axs[0, 2].set_title("Filtered goose image.")
+
+    axs[1, 0].imshow(np.log(abs(ft_goose_clean) + .01), plt.get_cmap('gray'))
+    axs[1, 1].imshow(np.log(abs(ft_goose_noise) + .01), plt.get_cmap('gray'))
+    axs[1, 2].imshow(np.log(abs(ft_goose_filtered) + .01), plt.get_cmap('gray'))
+
+    axs[1, 0].set_xlim([231, 281])
+    axs[1, 0].set_ylim([281, 231])
+
+    axs[1, 1].set_xlim([231, 281])
+    axs[1, 1].set_ylim([281, 231])
+
+    axs[1, 2].set_xlim([231, 281])
+    axs[1, 2].set_ylim([281, 231])
+
+    axs[1, 0].set_title("Clean goose image FT spectrum (Zoomed in).")
+    axs[1, 1].set_title("Noisy goose image FT spectrum (Zoomed in).")
+    axs[1, 2].set_title("Filtered goose image FT spectrum (Zoomed in).")
     plt.show()
 
-    # fast_ft_bird = fast_DFT2D(bird_img)
-    # naive_ft_bird = naive_DFT2D(bird_img)
+    print("Example 2: Lenna.")
 
-    # assert np.allclose(naive_ft_bird, np.fft.fft2(bird_img))
-    # assert np.allclose(fast_ft_bird, np.fft.fft2(bird_img))  # Doesn't work for some reason
+    lenna_clean = np.load('img/lenna.npy')
+    lenna_noise = np.load("img/lenna-noise.npy")
 
-    fast_ft_bird = np.fft.fft2(bird_img)
+    fig, axs = plt.subplots(2,3)
 
-    plt.imshow(20*np.log10(abs(fast_ft_bird)), plt.get_cmap('gray'), vmin=0, vmax=1)
+    ft_lenna_clean = fast_DFT2D(lenna_clean)
+    ft_lenna_clean = np.fft.fftshift(ft_lenna_clean)
+
+    ft_lenna_noise = fast_DFT2D(lenna_noise)
+    ft_lenna_noise = np.fft.fftshift(ft_lenna_noise)
+
+    ft_lenna_filtered = fast_DFT2D(lenna_noise)
+    ft_lenna_filtered = np.fft.fftshift(ft_lenna_filtered)
+
+    ft_lenna_filtered[256, :] = 0
+    ft_lenna_filtered[256, :] = 0
+
+    ft_lenna_filtered[:, 256] = 0
+    ft_lenna_filtered[:, 256] = 0
+
+    lenna_filtered = fast_iDFT2D(np.fft.ifftshift(ft_lenna_filtered)).real
+
+    axs[0, 0].imshow(lenna_clean, plt.get_cmap('gray'))
+    axs[0, 1].imshow(lenna_noise, plt.get_cmap('gray'))
+    axs[0, 2].imshow(lenna_filtered, plt.get_cmap('gray'))
+
+    axs[0, 0].set_title("Clean lenna image.")
+    axs[0, 1].set_title("Noisy lenna image.")
+    axs[0, 2].set_title("Filtered lenna image.")
+
+    axs[1, 0].imshow(np.log(abs(ft_lenna_clean) + .01), plt.get_cmap('gray'))
+    axs[1, 1].imshow(np.log(abs(ft_lenna_noise) + .01), plt.get_cmap('gray'))
+    axs[1, 2].imshow(np.log(abs(ft_lenna_filtered) + .01), plt.get_cmap('gray'))
+
+    axs[1, 0].set_title("Clean lenna image FT spectrum (Zoomed in).")
+    axs[1, 1].set_title("Noisy lenna image FT spectrum (Zoomed in).")
+    axs[1, 2].set_title("Filtered lenna image FT spectrum (Zoomed in).")
     plt.show()
 
-    keep_fraction = 0.125
-    N = fast_ft_bird.shape[0]
-    fast_ft_bird[int(N*keep_fraction):int(N*(1-keep_fraction)), int(N*keep_fraction):int(N*(1-keep_fraction))] = 0
-    
-    new_image = np.fft.ifft2(fast_ft_bird).real
 
-    plt.imshow(new_image, plt.get_cmap('gray'), vmin=0, vmax=1)
-
-    plt.show()
 if __name__ == "__main__":
     main()
