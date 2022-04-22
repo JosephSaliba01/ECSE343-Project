@@ -1,9 +1,10 @@
 # import statements
-import timeit
-from scipy.io.wavfile import read, write
-import matplotlib.pyplot as plt   # plotting 
+import sys                        
+import timeit                     # for timing
+import matplotlib.pyplot as plt   # for plotting 
 import numpy as np                # all of numpy...
-# del sys.modules["numpy"].fft      # ... except FFT helpers
+del sys.modules["numpy"].fft      # ... except FFT helpers
+
 
 def naive_DFT(inSignal, s: int = -1):
     """
@@ -110,17 +111,20 @@ def fast_iDFT2D(inSignal2D: complex):
     return y
 
 
-def plot_discrete(*signals, title=""):
+def shift_freq_center(spectrum):
     """
-    Helper function to plot the discrete signals.
+    Helper function to shift the 0 frequency spike to the center.
     """
-    fig, axs = plt.subplots(len(signals))
+    N = spectrum.shape[0]
+    return np.roll(spectrum, (N//2, N//2), axis=(1, 0))
 
-    for i, signal in enumerate(signals):
-        axs[i].stem(signal)
 
-    plt.suptitle(title)
-    plt.show()
+def i_shift_freq_center(spectrum):
+    """
+    Helper function to inverse the shifting of the 0 frequency to the center.
+    """
+    N = spectrum.shape[0]
+    return np.roll(spectrum, -(N//2), axis=(1, 0))
 
 
 def main():
@@ -141,13 +145,13 @@ def main():
         y = naive_DFT(x)
         DFTtime = timeit.default_timer() - start_time ##time it takes for DFT for a given N
         DFTplot = np.append(DFTplot, DFTtime)
-        assert np.allclose(y, np.fft.fft(x)) # assert correctness of naive DFT
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of naive DFT
 
         start_time = timeit.default_timer()
         y = fast_DFT(x)
         FFTtime = timeit.default_timer() - start_time ##time it takes for FFT for a given N
         FFTplot = np.append(FFTplot, FFTtime)
-        assert np.allclose(y, np.fft.fft(x)) # assert correctness of fast DFT
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of fast DFT
 
     plt.plot(Naxis,DFTplot)
     plt.plot(Naxis,FFTplot)
@@ -196,13 +200,13 @@ def main():
     fig, axs = plt.subplots(2,3)
 
     ft_goose_clean = fast_DFT2D(goose_clean)
-    ft_goose_clean = np.fft.fftshift(ft_goose_clean)
+    ft_goose_clean = shift_freq_center(ft_goose_clean)
 
     ft_goose_noise = fast_DFT2D(goose_noise)
-    ft_goose_noise = np.fft.fftshift(ft_goose_noise)
+    ft_goose_noise = shift_freq_center(ft_goose_noise)
 
     ft_goose_filtered = fast_DFT2D(goose_noise)
-    ft_goose_filtered = np.fft.fftshift(ft_goose_filtered)
+    ft_goose_filtered = shift_freq_center(ft_goose_filtered)
 
     def blank(M, y, x):
         M[x:x+1, y:y+1] = 0
@@ -213,7 +217,7 @@ def main():
     blank(ft_goose_filtered, 251, 251)
     blank(ft_goose_filtered, 261, 261)
 
-    goose_filtered = fast_iDFT2D(np.fft.ifftshift(ft_goose_filtered)).real
+    goose_filtered = fast_iDFT2D(i_shift_freq_center(ft_goose_filtered)).real
 
     axs[0, 0].imshow(goose_clean, plt.get_cmap('gray'))
     axs[0, 1].imshow(goose_noise, plt.get_cmap('gray'))
@@ -249,13 +253,13 @@ def main():
     fig, axs = plt.subplots(2,3)
 
     ft_lenna_clean = fast_DFT2D(lenna_clean)
-    ft_lenna_clean = np.fft.fftshift(ft_lenna_clean)
+    ft_lenna_clean = shift_freq_center(ft_lenna_clean)
 
     ft_lenna_noise = fast_DFT2D(lenna_noise)
-    ft_lenna_noise = np.fft.fftshift(ft_lenna_noise)
+    ft_lenna_noise = shift_freq_center(ft_lenna_noise)
 
     ft_lenna_filtered = fast_DFT2D(lenna_noise)
-    ft_lenna_filtered = np.fft.fftshift(ft_lenna_filtered)
+    ft_lenna_filtered = shift_freq_center(ft_lenna_filtered)
 
     # filter the spectrum
     ft_lenna_filtered[256, :] = 0
@@ -263,7 +267,7 @@ def main():
     ft_lenna_filtered[:, 256] = 0
     ft_lenna_filtered[:, 256] = 0
 
-    lenna_filtered = fast_iDFT2D(np.fft.ifftshift(ft_lenna_filtered)).real
+    lenna_filtered = fast_iDFT2D(i_shift_freq_center(ft_lenna_filtered)).real
 
     axs[0, 0].imshow(lenna_clean, plt.get_cmap('gray'))
     axs[0, 1].imshow(lenna_noise, plt.get_cmap('gray'))
