@@ -45,7 +45,7 @@ def naive_iDFT(inSignal):
     return y
 
 
-def fast_DFT(inSignal, s: int = -1):
+def fast_DFT(inSignal, s: int = -1, base = 32):
     """
     Fast implementation of the discrete Fourier transform.
 
@@ -56,11 +56,11 @@ def fast_DFT(inSignal, s: int = -1):
     """
     y = np.zeros(inSignal.shape, dtype = complex)
     N = inSignal.shape[0]
-    if N <= 32:
+    if N <= base:
         return naive_DFT(inSignal,s)
     else:
-        yeven = fast_DFT(inSignal[0:N:2],s) #find FFT at even indices
-        yodd = fast_DFT(inSignal[1:N:2],s) #find FFTat odd indices
+        yeven = fast_DFT(inSignal[0:N:2],s, base) #find FFT at even indices
+        yodd = fast_DFT(inSignal[1:N:2],s, base) #find FFTat odd indices
         w = np.exp(s*2j*np.pi*np.arange(N)/N)
         fe = np.resize(yeven,N) #sampled values of the DFT are N-periodic
         fo = np.resize(yodd,N) 
@@ -97,9 +97,9 @@ def naive_iDFT2D(inSignal2D: complex):
     return y
 
 
-def fast_DFT2D(inSignal2D, s: int = -1):
-    x = np.apply_along_axis(fast_DFT, 0, inSignal2D, s)
-    y = np.apply_along_axis(fast_DFT, 1, x, s)
+def fast_DFT2D(inSignal2D, s: int = -1, base = 32):
+    x = np.apply_along_axis(fast_DFT, 0, inSignal2D, s, base)
+    y = np.apply_along_axis(fast_DFT, 1, x, s, base)
     return y
 
 
@@ -131,7 +131,8 @@ def main():
     """
     Main method.
     """
-    print("[Part 1.a]: Benchmarking FFT performance against a naive DFT for increasing N values.")
+    print("[Part 1.a]: Benchmarking FFT performance against a naive DFT for increasing N values with base case = 32, 2, and 128.")
+    #benchmarking 1D-FFT's performance with base case = 32
     DFTplot = np.array([])
     FFTplot = np.array([])
     Naxis = np.array([])
@@ -158,10 +159,72 @@ def main():
     plt.legend(['naive DFT','fast DFT'], title = "Legend")
     plt.xlabel('N')
     plt.ylabel('Time')
-    plt.title('Performance of DFT/FFT as a function of N')
+    plt.title('Performance of DFT/FFT as a function of N with the base case = 32',fontsize = 10 )
     plt.show()
     
-    print("[Part 1.b]: Benchmarking FFT-2D performance against a naive DFT-2D for increasing N values.")
+    #benchmarking 1D-FFT's performance with base case = 2
+    DFTplot = np.array([])
+    FFTplot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(13): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+
+        start_time = timeit.default_timer()
+        y = naive_DFT(x)
+        DFTtime = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFTplot = np.append(DFTplot, DFTtime)
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of naive DFT
+
+        start_time = timeit.default_timer()
+        y = fast_DFT(x,base = 2)
+        FFTtime = timeit.default_timer() - start_time ##time it takes for FFT for a given N
+        FFTplot = np.append(FFTplot, FFTtime)
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of fast DFT
+
+    plt.plot(Naxis,DFTplot)
+    plt.plot(Naxis,FFTplot)
+    plt.legend(['naive DFT','fast DFT'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT/FFT as a function of N with the base case = 2', fontsize = 10)
+    plt.show()
+    
+    #benchmarking 1D-FFT's performance with base case = 128
+    DFTplot = np.array([])
+    FFTplot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(13): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+
+        start_time = timeit.default_timer()
+        y = naive_DFT(x)
+        DFTtime = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFTplot = np.append(DFTplot, DFTtime)
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of naive DFT
+
+        start_time = timeit.default_timer()
+        y = fast_DFT(x,base = 128)
+        FFTtime = timeit.default_timer() - start_time ##time it takes for FFT for a given N
+        FFTplot = np.append(FFTplot, FFTtime)
+        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of fast DFT
+
+    plt.plot(Naxis,DFTplot)
+    plt.plot(Naxis,FFTplot)
+    plt.legend(['naive DFT','fast DFT'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT/FFT as a function of N with the base case = 128', fontsize = 10)
+    plt.show()
+    
+    
+    print("[Part 1.b]: Benchmarking FFT-2D performance against a naive DFT-2D for increasing N values with the base case = 32, 2, and 128.")
+    #benchmarking 2D-FFT's performance with base case = 32
     DFT2plot = np.array([])
     FFT2plot = np.array([])
     Naxis = np.array([])
@@ -188,9 +251,70 @@ def main():
     plt.legend(['naive DFT-2D','fast DFT-2D'], title = "Legend")
     plt.xlabel('N')
     plt.ylabel('Time')
-    plt.title('Performance of DFT-2D/FFT-2D as a function of N')
+    plt.title('Performance of DFT-2D/FFT-2D as a function of N with the base case = 32', fontsize = 10)
+    plt.show()
+    
+    #benchmarking 2D-FFT's performance with base case = 2
+    DFT2plot = np.array([])
+    FFT2plot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(10): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+        z = np.zeros((N,N), dtype=complex)
+        z[:] = x
+
+        start_time = timeit.default_timer()
+        y = naive_DFT2D(z)
+        DFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFT2plot = np.append(DFT2plot, DFT2time)
+
+        start_time = timeit.default_timer()
+        y = fast_DFT2D(z, base = 2)
+        FFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        FFT2plot = np.append(FFT2plot, FFT2time)
+
+    plt.plot(Naxis, DFT2plot)
+    plt.plot(Naxis,FFT2plot)
+    plt.legend(['naive DFT-2D','fast DFT-2D'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT-2D/FFT-2D as a function of N with the base case = 2', fontsize = 10)
+    plt.show()
+    
+    #benchmarking 2D-FFT's performance with base case = 128
+    DFT2plot = np.array([])
+    FFT2plot = np.array([])
+    Naxis = np.array([])
+
+    for m in range(10): 
+        N = 2**m
+        Naxis = np.append(Naxis,N)
+        x = np.random.randn(N) + np.random.randn(N)*1j
+        z = np.zeros((N,N), dtype=complex)
+        z[:] = x
+
+        start_time = timeit.default_timer()
+        y = naive_DFT2D(z)
+        DFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        DFT2plot = np.append(DFT2plot, DFT2time)
+
+        start_time = timeit.default_timer()
+        y = fast_DFT2D(z, base = 128)
+        FFT2time = timeit.default_timer() - start_time ##time it takes for DFT for a given N
+        FFT2plot = np.append(FFT2plot, FFT2time)
+
+    plt.plot(Naxis, DFT2plot)
+    plt.plot(Naxis,FFT2plot)
+    plt.legend(['naive DFT-2D','fast DFT-2D'], title = "Legend")
+    plt.xlabel('N')
+    plt.ylabel('Time')
+    plt.title('Performance of DFT-2D/FFT-2D as a function of N with the base case = 128', fontsize = 10)
     plt.show()
 
+    
     print("[Part 2]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
     print("Example 1: Goose image.")
 
