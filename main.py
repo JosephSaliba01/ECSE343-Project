@@ -84,12 +84,19 @@ def fast_iDFT(inSignal):
 
 
 def naive_DFT2D(inSignal2D, s: int = -1):
+    """
+    Uses the naive_DFT function to compute the 2D DFT by 
+    taking the DFT of each row and then the DFT of each column.
+    """
     x = np.apply_along_axis(naive_DFT, 0, inSignal2D, s)
     y = np.apply_along_axis(naive_DFT, 1, x, s)
     return y
 
 
 def naive_iDFT2D(inSignal2D: complex):
+    """
+    Uses the naive_DFT2D function to compute the inverse 2D DFT.
+    """
     y = np.zeros(inSignal2D.shape, dtype = complex)
     N = inSignal2D.shape[0]
     inSignal2D = inSignal2D/(N**2)
@@ -98,12 +105,20 @@ def naive_iDFT2D(inSignal2D: complex):
 
 
 def fast_DFT2D(inSignal2D, s: int = -1, base = 32):
+    """
+    Fast implementation of the 2D discrete Fourier transform.
+    Uses the 1D FFT implemented with the Cooley-Tukey algorithm.
+    """
     x = np.apply_along_axis(fast_DFT, 0, inSignal2D, s, base)
     y = np.apply_along_axis(fast_DFT, 1, x, s, base)
     return y
 
 
 def fast_iDFT2D(inSignal2D: complex):
+    """
+    Fast implementation of the inverse 2D discrete Fourier transform.
+    Uses the 1D FFT implemented with the Cooley-Tukey algorithm.
+    """
     y = np.zeros(inSignal2D.shape, dtype = complex)
     N = inSignal2D.shape[0]
     inSignal2D = inSignal2D/(N**2)
@@ -146,13 +161,11 @@ def main():
         y = naive_DFT(x)
         DFTtime = timeit.default_timer() - start_time ##time it takes for DFT for a given N
         DFTplot = np.append(DFTplot, DFTtime)
-        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of naive DFT
 
         start_time = timeit.default_timer()
         y = fast_DFT(x)
         FFTtime = timeit.default_timer() - start_time ##time it takes for FFT for a given N
         FFTplot = np.append(FFTplot, FFTtime)
-        # assert np.allclose(y, np.fft.fft(x)) # assert correctness of fast DFT
 
     plt.plot(Naxis,DFTplot)
     plt.plot(Naxis,FFTplot)
@@ -316,7 +329,7 @@ def main():
 
     
     print("[Part 2]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
-    print("Example 1: Goose image.")
+    print("[Example 1]: Goose image.")
 
     goose_clean = np.load('img/goose.npy')
     goose_noise = np.load("img/goose-noise.npy")
@@ -371,7 +384,7 @@ def main():
     axs[1, 2].set_title("Filtered goose image FT spectrum (Zoomed in).")
     plt.show()
 
-    print("Example 2: Lenna.")
+    print("[Example 2]: Lenna.")
 
     lenna_clean = np.load('img/lenna-1024.npy')
     lenna_noise = np.load("img/lenna-1024-noise.npy")
