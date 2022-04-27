@@ -388,20 +388,20 @@ def main():
 
     goose_zoom = [231, 281]
 
-    axs[0, 0].imshow(goose_clean, plt.get_cmap('gray'))
-    axs[0, 1].imshow(goose_noise, plt.get_cmap('gray'))
-    axs[0, 2].imshow(goose_filtered, plt.get_cmap('gray'))
-    axs[0, 3].imshow(goose_advance_filtered, plt.get_cmap('gray'))
+    axs[0, 0].imshow(goose_clean, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 1].imshow(goose_noise, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 2].imshow(goose_filtered, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 3].imshow(goose_advance_filtered, plt.get_cmap('gray'), fontsize = 8)
 
     axs[0, 0].set_title("Clean goose image")
     axs[0, 1].set_title("Noisy goose image")
     axs[0, 2].set_title("Denoised goose | Static method")
     axs[0, 3].set_title("Denoised goose | Advance filter")
 
-    axs[1, 0].imshow(np.log(abs(ft_goose_clean) + .01), plt.get_cmap('gray'))
-    axs[1, 1].imshow(np.log(abs(ft_goose_noise) + .01), plt.get_cmap('gray'))
-    axs[1, 2].imshow(np.log(abs(ft_goose_filtered) + .01), plt.get_cmap('gray'))
-    axs[1, 3].imshow(np.log(abs(ft_goose_advance_filtered) + .01), plt.get_cmap('gray'))
+    axs[1, 0].imshow(np.log(abs(ft_goose_clean) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 1].imshow(np.log(abs(ft_goose_noise) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 2].imshow(np.log(abs(ft_goose_filtered) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 3].imshow(np.log(abs(ft_goose_advance_filtered) + .01), plt.get_cmap('gray'), fontsize = 8)
 
     axs[1, 0].set_xlim(goose_zoom)
     axs[1, 0].set_ylim(goose_zoom)
@@ -460,20 +460,20 @@ def main():
 
     lenna_zoom = [464, 560]
 
-    axs[0, 0].imshow(lenna_clean, plt.get_cmap('gray'))
-    axs[0, 1].imshow(lenna_noise, plt.get_cmap('gray'))
-    axs[0, 2].imshow(lenna_filtered, plt.get_cmap('gray'))
-    axs[0, 3].imshow(lenna_advance_filtered, plt.get_cmap('gray'))
+    axs[0, 0].imshow(lenna_clean, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 1].imshow(lenna_noise, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 2].imshow(lenna_filtered, plt.get_cmap('gray'), fontsize = 8)
+    axs[0, 3].imshow(lenna_advance_filtered, plt.get_cmap('gray'), fontsize = 8)
 
     axs[0, 0].set_title("Lenna")
     axs[0, 1].set_title("Noisy Lenna")
     axs[0, 2].set_title("Denoised Lenna | Static method")
     axs[0, 3].set_title("Denoised Lenna | Advance filter")
 
-    axs[1, 0].imshow(np.log(abs(ft_lenna_clean) + .01), plt.get_cmap('gray'))
-    axs[1, 1].imshow(np.log(abs(ft_lenna_noise) + .01), plt.get_cmap('gray'))
-    axs[1, 2].imshow(np.log(abs(ft_lenna_filtered) + .01), plt.get_cmap('gray'))
-    axs[1, 3].imshow(np.log(abs(ft_lenna_advance_filtered) + .01), plt.get_cmap('gray'))
+    axs[1, 0].imshow(np.log(abs(ft_lenna_clean) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 1].imshow(np.log(abs(ft_lenna_noise) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 2].imshow(np.log(abs(ft_lenna_filtered) + .01), plt.get_cmap('gray'), fontsize = 8)
+    axs[1, 3].imshow(np.log(abs(ft_lenna_advance_filtered) + .01), plt.get_cmap('gray'), fontsize = 8)
 
     axs[1, 0].set_title("Lenna f spectrum")
     axs[1, 1].set_title("Noisy Lenna f spectrum")
