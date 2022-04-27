@@ -142,6 +142,29 @@ def i_shift_freq_center(spectrum):
     return np.roll(spectrum, -(N//2), axis=(1, 0))
 
 
+def filter_2D(spectrum, k=5, treshold_constant=4):
+    """
+    Filter the spectrum using band filtering method.
+    """
+    N = spectrum.shape[0]
+    center_value = spectrum[N//2, N//2]
+
+    slides = np.lib.stride_tricks.sliding_window_view(spectrum, (k, k))
+
+    for i in range(len(slides)):
+        for j in range(len(slides)):
+            mean = np.mean(np.abs(slides[i, j]))
+            std = np.std(np.abs(slides[i, j]))
+
+            for m in range(len(slides[i, j])):
+                for n in range(len(slides[i, j])):
+                    if np.abs(slides[i, j, m, n]) > (mean + treshold_constant * std):
+                        spectrum[i + m, j + n] *= mean / np.abs(spectrum[i + m, j + n])
+
+    spectrum[N//2, N//2] = center_value
+    return spectrum
+
+
 def main():
     """
     Main method.
@@ -329,12 +352,13 @@ def main():
 
     
     print("[Part 2]: Benchmarking 2D FFT performance against a naive 2D DFT in image application.")
-    print("[Example 1]: Goose image.")
+    print("[Example 1]: Goose image.\nResolution: 512 x 512.")
 
     goose_clean = np.load('img/goose.npy')
     goose_noise = np.load("img/goose-noise.npy")
 
-    fig, axs = plt.subplots(2,3)
+    fig, axs = plt.subplots(2,4)
+    fig.suptitle("Goose image", fontsize = 16)
 
     ft_goose_clean = fast_DFT2D(goose_clean)
     ft_goose_clean = shift_freq_center(ft_goose_clean)
@@ -348,7 +372,7 @@ def main():
     def blank(M, y, x):
         M[x:x+1, y:y+1] = 0
 
-    # filter the spectrum
+    # filter the spectrum statically
     blank(ft_goose_filtered, 240, 256)
     blank(ft_goose_filtered, 272, 256)
     blank(ft_goose_filtered, 251, 251)
@@ -356,19 +380,28 @@ def main():
 
     goose_filtered = fast_iDFT2D(i_shift_freq_center(ft_goose_filtered)).real
 
+    ft_goose_advance_filtered = fast_DFT2D(goose_noise)
+    ft_goose_advance_filtered = shift_freq_center(ft_goose_advance_filtered)
+    ft_goose_advance_filtered = filter_2D(ft_goose_advance_filtered, k=5)
+
+    goose_advance_filtered = fast_iDFT2D(i_shift_freq_center(ft_goose_advance_filtered)).real
+
     goose_zoom = [231, 281]
 
     axs[0, 0].imshow(goose_clean, plt.get_cmap('gray'))
     axs[0, 1].imshow(goose_noise, plt.get_cmap('gray'))
     axs[0, 2].imshow(goose_filtered, plt.get_cmap('gray'))
+    axs[0, 3].imshow(goose_advance_filtered, plt.get_cmap('gray'))
 
-    axs[0, 0].set_title("Clean goose image.")
-    axs[0, 1].set_title("Noisy goose image.")
-    axs[0, 2].set_title("Filtered goose image.")
+    axs[0, 0].set_title("Clean goose image")
+    axs[0, 1].set_title("Noisy goose image")
+    axs[0, 2].set_title("Denoised goose | Static method")
+    axs[0, 3].set_title("Denoised goose | Advance filter")
 
     axs[1, 0].imshow(np.log(abs(ft_goose_clean) + .01), plt.get_cmap('gray'))
     axs[1, 1].imshow(np.log(abs(ft_goose_noise) + .01), plt.get_cmap('gray'))
     axs[1, 2].imshow(np.log(abs(ft_goose_filtered) + .01), plt.get_cmap('gray'))
+    axs[1, 3].imshow(np.log(abs(ft_goose_advance_filtered) + .01), plt.get_cmap('gray'))
 
     axs[1, 0].set_xlim(goose_zoom)
     axs[1, 0].set_ylim(goose_zoom)
@@ -379,17 +412,24 @@ def main():
     axs[1, 2].set_xlim(goose_zoom)
     axs[1, 2].set_ylim(goose_zoom)
 
-    axs[1, 0].set_title("Clean goose image FT spectrum (Zoomed in).")
-    axs[1, 1].set_title("Noisy goose image FT spectrum (Zoomed in).")
-    axs[1, 2].set_title("Filtered goose image FT spectrum (Zoomed in).")
+    axs[1, 3].set_xlim(goose_zoom)
+    axs[1, 3].set_ylim(goose_zoom)
+
+    axs[1, 0].set_title("Goose f spectrum")
+    axs[1, 1].set_title("Noisy goose f spectrum")
+    axs[1, 2].set_title("f spectrum | Static method")
+    axs[1, 3].set_title("f spectrum | Advance filter")
+
     plt.show()
 
-    print("[Example 2]: Lenna.")
+    print("[Example 2]: Lenna.\nResolution: 1024 x 1024.")
 
     lenna_clean = np.load('img/lenna-1024.npy')
     lenna_noise = np.load("img/lenna-1024-noise.npy")
 
-    fig, axs = plt.subplots(2,3)
+    fig, axs = plt.subplots(2,4)
+
+    fig.suptitle("Lenna image", fontsize = 16)
 
     ft_lenna_clean = fast_DFT2D(lenna_clean)
     ft_lenna_clean = shift_freq_center(ft_lenna_clean)
@@ -403,7 +443,7 @@ def main():
     def blank(M, y, x, c=0):
         M[x-c:x+c+1, y-c:y+c+1] = 0
     
-    # filter the spectrum
+    # filter the spectrum statically
     blank(ft_lenna_filtered, 480, 512, 1)
     blank(ft_lenna_filtered, 544, 512, 1)
 
@@ -412,23 +452,33 @@ def main():
 
     lenna_filtered = fast_iDFT2D(i_shift_freq_center(ft_lenna_filtered)).real
 
+    ft_lenna_advance_filtered = fast_DFT2D(lenna_noise)
+    ft_lenna_advance_filtered = shift_freq_center(ft_lenna_advance_filtered)
+    ft_lenna_advance_filtered = filter_2D(ft_lenna_advance_filtered, k=5)
+
+    lenna_advance_filtered = fast_iDFT2D(i_shift_freq_center(ft_lenna_advance_filtered)).real
+
     lenna_zoom = [464, 560]
 
     axs[0, 0].imshow(lenna_clean, plt.get_cmap('gray'))
     axs[0, 1].imshow(lenna_noise, plt.get_cmap('gray'))
     axs[0, 2].imshow(lenna_filtered, plt.get_cmap('gray'))
+    axs[0, 3].imshow(lenna_advance_filtered, plt.get_cmap('gray'))
 
-    axs[0, 0].set_title("Clean lenna image.")
-    axs[0, 1].set_title("Noisy lenna image.")
-    axs[0, 2].set_title("Filtered lenna image.")
+    axs[0, 0].set_title("Lenna")
+    axs[0, 1].set_title("Noisy Lenna")
+    axs[0, 2].set_title("Denoised Lenna | Static method")
+    axs[0, 3].set_title("Denoised Lenna | Advance filter")
 
     axs[1, 0].imshow(np.log(abs(ft_lenna_clean) + .01), plt.get_cmap('gray'))
     axs[1, 1].imshow(np.log(abs(ft_lenna_noise) + .01), plt.get_cmap('gray'))
     axs[1, 2].imshow(np.log(abs(ft_lenna_filtered) + .01), plt.get_cmap('gray'))
+    axs[1, 3].imshow(np.log(abs(ft_lenna_advance_filtered) + .01), plt.get_cmap('gray'))
 
-    axs[1, 0].set_title("Clean lenna image FT spectrum (Zoomed in).")
-    axs[1, 1].set_title("Noisy lenna image FT spectrum (Zoomed in).")
-    axs[1, 2].set_title("Filtered lenna image FT spectrum (Zoomed in).")
+    axs[1, 0].set_title("Lenna f spectrum")
+    axs[1, 1].set_title("Noisy Lenna f spectrum")
+    axs[1, 2].set_title("f spectrum | Static method")
+    axs[1, 3].set_title("f spectrum | Advance filter")
 
     axs[1, 0].set_xlim(lenna_zoom)
     axs[1, 0].set_ylim(lenna_zoom)
@@ -438,6 +488,9 @@ def main():
 
     axs[1, 2].set_xlim(lenna_zoom)
     axs[1, 2].set_ylim(lenna_zoom)
+
+    axs[1, 3].set_xlim(lenna_zoom)
+    axs[1, 3].set_ylim(lenna_zoom)
 
     plt.show()
 
